@@ -151,6 +151,10 @@ class GuaritaIP
         $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
         $deviceOutputNumber = str_pad(strval($deviceOutputNumber), 2, '0', STR_PAD_LEFT); /* 1, 2, 3 ou 4 */
         $shouldGenerateEvent = strval($shouldGenerateEvent);
+
+        if ($deviceType === false || $deviceNumber === false) {
+            return false;
+        }
         
         switch ($deviceOutputNumber) {
             case '01':
@@ -241,8 +245,12 @@ class GuaritaIP
     // PC 39: Ativar modo remoto (RECEPTORES) - Programável
     public function enableRemoteMode($deviceType, $deviceNumber, $duration) {
         $deviceType = $this->normalizeDeviceType($deviceType);
-        $deviceNumber = str_pad(strval($deviceNumber), 2, '0', STR_PAD_LEFT); /* CAN 1 a CAN 8; valores de 0 a 7 */
+        $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
         
+        if ($deviceType === false || $deviceNumber === false) {
+            return false;
+        }
+
         if (is_int($duration) || ctype_digit($duration)) {
             if ((0 <= intval($duration)) && (intval($duration) <= 255)) { /* $duration deve estar entre 0 e 255 segundos */
                 $duration = dechex($duration);
@@ -298,6 +306,10 @@ class GuaritaIP
         $deviceType = $this->normalizeDeviceType($deviceType);
         $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
         
+        if ($deviceType === false || $deviceNumber === false) {
+            return false;
+        }
+
         if (!$fp) {
             $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
         }
@@ -331,6 +343,10 @@ class GuaritaIP
     public function getDigitalInput($deviceType, $deviceNumber, $digitalInput = 0) {
         $deviceType = $this->normalizeDeviceType($deviceType);
         $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
+
+        if ($deviceType === false || $deviceNumber === false) {
+            return false;
+        }
         
         $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
         if (!$fp) {
@@ -366,6 +382,10 @@ class GuaritaIP
         $deviceOutputNumber = str_pad(strval($deviceOutputNumber), 2, '0', STR_PAD_LEFT); /* 1, 2, 3 ou 4 */
         $shouldGenerateEvent = strval($shouldGenerateEvent);
         
+        if ($deviceType === false || $deviceNumber === false) {
+            return false;
+        }
+
         if (is_int($duration) || ctype_digit($duration)) {
             if ((0 <= intval($duration)) && (intval($duration) <= 255)) { /* duration deve estar entre 0 e 255 segundos */
                 $duration = dechex($duration);
@@ -415,6 +435,10 @@ class GuaritaIP
     
         $deviceType = $this->normalizeDeviceType($deviceType);
         $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
+
+        if ($deviceType === false || $deviceNumber === false) {
+            return false;
+        }
         
         switch ($digitalInput) {
             case 'e1':
