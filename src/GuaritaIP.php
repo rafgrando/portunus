@@ -363,7 +363,7 @@ class GuaritaIP
                     $message = hex2bin($this->calculateChecksum('0042' . $deviceType . $deviceNumber));
                     fwrite($connection, $message);
                     $digitalInput = str_split(bin2hex(fgets($connection, 7)), 2);
-                    echo $digitalInput[0], $digitalInput[1], $digitalInput[2], $digitalInput[3], $digitalInput[4], $digitalInput[5];
+                    return $digitalInput[0] . $digitalInput[1] . $digitalInput[2] . $digitalInput[3] . $digitalInput[4] . $digitalInput[5];
                 } else { 
                     return false;
                   }
@@ -372,7 +372,7 @@ class GuaritaIP
                 fwrite($connection, $message);
                 //$digitalInput = str_split(bin2hex(fgets($connection, 7)), 2);
                 $digitalInput = strval(fgets($connection, 7));
-                echo $digitalInput[0], $digitalInput[1], $digitalInput[2], $digitalInput[3], $digitalInput[4], $digitalInput[5];
+                return $digitalInput[0] . $digitalInput[1] . $digitalInput[2] . $digitalInput[3] . $digitalInput[4] . $digitalInput[5];
             }
           }
     }
