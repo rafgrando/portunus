@@ -110,7 +110,7 @@ class GuaritaIP
 
 
     // PC 3: Ler identificação (Linha 2 e 3 - Display)
-    public function leIdentificacao() {
+    public function readIdentification() {
         $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
         if (!$fp) {
             return false;
@@ -128,7 +128,7 @@ class GuaritaIP
 
 
     // PC 12: Ler data e hora (Relógio)
-    public function leDataHora() {
+    public function readDateTime() {
         $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
         if (!$fp) {
             return false;
@@ -146,7 +146,7 @@ class GuaritaIP
 
 
     // PC 13: Acionar saídas (Relés dos Receptores)
-    public function acionaRele($deviceType, $deviceNumber, $deviceOutputNumber, $shouldGenerateEvent = 1) {
+    public function setDeviceOutput($deviceType, $deviceNumber, $deviceOutputNumber, $shouldGenerateEvent = 1) {
         $deviceType = $this->normalizeDeviceType($deviceType);
         $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
         $deviceOutputNumber = str_pad(strval($deviceOutputNumber), 2, '0', STR_PAD_LEFT); /* 1, 2, 3 ou 4 */
@@ -181,7 +181,7 @@ class GuaritaIP
     
     
     // PC 18: Reiniciar Guarita (Efetiva Config. Ethernet)
-    public function reiniciaGuaritaIP() {
+    public function rebootGuaritaIP() {
         $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
         if (!$fp) {
             return false;
@@ -199,7 +199,7 @@ class GuaritaIP
     
     
     // PC 24: RESET remoto (Tecla RESET do Guarita)
-    public function pressionaRESET() {
+    public function pressResetButton() {
         $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
         if (!$fp) {
             return false;
@@ -217,7 +217,7 @@ class GuaritaIP
     
     
     // PC 29: Atualizar Receptores
-    public function atualizaReceptores() {
+    public function updateReceptors() {
         $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
         if (!$fp) {
             return false;
@@ -239,14 +239,14 @@ class GuaritaIP
     
     
     // PC 39: Ativar modo remoto (RECEPTORES) - Programável
-    public function ativaModoRemotoProg($deviceType, $deviceNumber, $tempo) {
+    public function enableRemoteMode($deviceType, $deviceNumber, $duration) {
         $deviceType = $this->normalizeDeviceType($deviceType);
         $deviceNumber = str_pad(strval($deviceNumber), 2, '0', STR_PAD_LEFT); /* CAN 1 a CAN 8; valores de 0 a 7 */
         
-        if (is_int($tempo) || ctype_digit($tempo)) {
-            if ((0 <= intval($tempo)) && (intval($tempo) <= 255)) { /* Tempo deve estar entre 0 e 255 segundos */
-                $tempo = dechex($tempo);
-                $tempo = str_pad(strval($tempo), 2, '0', STR_PAD_LEFT);
+        if (is_int($duration) || ctype_digit($duration)) {
+            if ((0 <= intval($duration)) && (intval($duration) <= 255)) { /* $duration deve estar entre 0 e 255 segundos */
+                $duration = dechex($duration);
+                $duration = str_pad(strval($duration), 2, '0', STR_PAD_LEFT);
             } else {
                 return false;
             }
@@ -283,7 +283,7 @@ class GuaritaIP
         } else {
             fwrite($fp, $this->deviceAccessCode);
             fgets($fp, 12);
-            $message = hex2bin($this->calculateChecksum('0027' . $deviceType . $deviceNumber . $tempo));
+            $message = hex2bin($this->calculateChecksum('0027' . $deviceType . $deviceNumber . $duration));
             fwrite($fp, $message);
             fgets($fp, 2);
             fclose($fp);
@@ -294,7 +294,7 @@ class GuaritaIP
 
 
     // PC 61: Ler versão do Receptor (Firmware)
-    public function leVersaoReceptor($deviceType, $deviceNumber, $fp = null) {
+    public function readReceptorVersion($deviceType, $deviceNumber, $fp = null) {
         $deviceType = $this->normalizeDeviceType($deviceType);
         $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
         
@@ -328,7 +328,7 @@ class GuaritaIP
     
     
     // PC 66: Ler entradas digitais - RECEPTOR
-    public function leSensor($deviceType, $deviceNumber, $sensor = 0) {
+    public function readDigitalInput($deviceType, $deviceNumber, $digitalInput = 0) {
         $deviceType = $this->normalizeDeviceType($deviceType);
         $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
         
@@ -342,17 +342,17 @@ class GuaritaIP
                 if ($auth == 'Autorizado') {
                     $message = hex2bin($this->calculateChecksum('0042' . $deviceType . $deviceNumber));
                     fwrite($fp, $message);
-                    $sensor = str_split(bin2hex(fgets($fp, 7)), 2);
-                    echo $sensor[0], $sensor[1], $sensor[2], $sensor[3], $sensor[4], $sensor[5];
+                    $digitalInput = str_split(bin2hex(fgets($fp, 7)), 2);
+                    echo $digitalInput[0], $digitalInput[1], $digitalInput[2], $digitalInput[3], $digitalInput[4], $digitalInput[5];
                 } else { 
                     return false;
                   }
             } else {
                 $message = hex2bin($this->calculateChecksum('0042' . $deviceType . $deviceNumber));
                 fwrite($fp, $message);
-                //$sensor = str_split(bin2hex(fgets($fp, 7)), 2);
-                $sensor = strval(fgets($fp, 7));
-                echo $sensor[0], $sensor[1], $sensor[2], $sensor[3], $sensor[4], $sensor[5];
+                //$digitalInput = str_split(bin2hex(fgets($fp, 7)), 2);
+                $digitalInput = strval(fgets($fp, 7));
+                echo $digitalInput[0], $digitalInput[1], $digitalInput[2], $digitalInput[3], $digitalInput[4], $digitalInput[5];
             }
           }
     }
@@ -360,16 +360,16 @@ class GuaritaIP
     
     
     // PC 92: Acionar saídas (Relés dos Receptores) - AVANÇADO
-    public function acionaReleAvancado($deviceType, $deviceNumber, $deviceOutputNumber, $tempo = 1, $shouldGenerateEvent = 1) {
+    public function setDeviceOutputTimed($deviceType, $deviceNumber, $deviceOutputNumber, $duration = 1, $shouldGenerateEvent = 1) {
         $deviceType = $this->normalizeDeviceType($deviceType);
         $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
         $deviceOutputNumber = str_pad(strval($deviceOutputNumber), 2, '0', STR_PAD_LEFT); /* 1, 2, 3 ou 4 */
         $shouldGenerateEvent = strval($shouldGenerateEvent);
         
-        if (is_int($tempo) || ctype_digit($tempo)) {
-            if ((0 <= intval($tempo)) && (intval($tempo) <= 255)) { /* Tempo deve estar entre 0 e 255 segundos */
-                $tempo = dechex($tempo);
-                $tempo = str_pad(strval($tempo), 2, '0', STR_PAD_LEFT);
+        if (is_int($duration) || ctype_digit($duration)) {
+            if ((0 <= intval($duration)) && (intval($duration) <= 255)) { /* duration deve estar entre 0 e 255 segundos */
+                $duration = dechex($duration);
+                $duration = str_pad(strval($duration), 2, '0', STR_PAD_LEFT);
             } else {
                 return false;
             }
@@ -396,7 +396,7 @@ class GuaritaIP
         } else {
             fwrite($fp, $this->deviceAccessCode);
             fgets($fp, 12);
-            $message = hex2bin($this->calculateChecksum('005c' . $deviceType . $deviceNumber . $deviceOutputNumber . $shouldGenerateEvent . $tempo));
+            $message = hex2bin($this->calculateChecksum('005c' . $deviceType . $deviceNumber . $deviceOutputNumber . $shouldGenerateEvent . $duration));
             fwrite($fp, $message);
             fgets($fp, 2);
             fclose($fp);
@@ -407,7 +407,7 @@ class GuaritaIP
     
     
     // PC 93: Ler entradas digitais (Avançado) - RECEPTOR
-    public function leSensorAvancado($deviceType, $deviceNumber, $reader = 0, $digitalInput = 0) {
+    public function readDigitalInputAdvanced($deviceType, $deviceNumber, $reader = 0, $digitalInput = 0) {
         //   Se especificados "$reader" e "$digitalInput", retorna 0 (desligado) ou 1 (ligado).
         //   Caso não sejam especificados "$reader" e "$digitalInput", retorna uma string representando um
         // número binário de 16 posições, sendo 4 posições para cada leitor (reader), da esquerda para direta, do maior
@@ -499,15 +499,15 @@ class GuaritaIP
                 if ($auth == 'Autorizado') {
                     $message = hex2bin($this->calculateChecksum('005d' . $deviceType . $deviceNumber));
                     fwrite($fp, $message);
-                    $sensor = strval(fgets($fp, 8));
-                    $sensor = substr($this->removeExtraByte(bin2hex($sensor)), 8, 4);
-                    $sensor = strval(base_convert($sensor, 16, 2));
-                    $sensor = str_pad($sensor, 16, '0', STR_PAD_LEFT);
+                    $digitalInput = strval(fgets($fp, 8));
+                    $digitalInput = substr($this->removeExtraByte(bin2hex($digitalInput)), 8, 4);
+                    $digitalInput = strval(base_convert($digitalInput, 16, 2));
+                    $digitalInput = str_pad($digitalInput, 16, '0', STR_PAD_LEFT);
                     if (!$digitalInput) {
-                        return $sensor;
+                        return $digitalInput;
                     } else {
-                        $sensor = array_reverse(str_split($sensor, 1));
-                        return $sensor[$ed];
+                        $digitalInput = array_reverse(str_split($digitalInput, 1));
+                        return $digitalInput[$ed];
                     }
                 } else { 
                     return false;
@@ -515,15 +515,15 @@ class GuaritaIP
             } else {
                 $message = hex2bin($this->calculateChecksum('005d' . $deviceType . $deviceNumber));
                 fwrite($fp, $message);
-                $sensor = strval(fgets($fp, 8));
-                $sensor = substr($this->removeExtraByte(bin2hex($sensor)), 8, 4);
-                $sensor = strval(base_convert($sensor, 16, 2));
-                $sensor = str_pad($sensor, 16, '0', STR_PAD_LEFT);
+                $digitalInput = strval(fgets($fp, 8));
+                $digitalInput = substr($this->removeExtraByte(bin2hex($digitalInput)), 8, 4);
+                $digitalInput = strval(base_convert($digitalInput, 16, 2));
+                $digitalInput = str_pad($digitalInput, 16, '0', STR_PAD_LEFT);
                 if (!$digitalInput) {
-                    return $sensor;
+                    return $digitalInput;
                 } else {
-                    $sensor = array_reverse(str_split($sensor, 1));
-                    return $sensor[$ed];
+                    $digitalInput = array_reverse(str_split($digitalInput, 1));
+                    return $digitalInput[$ed];
                 }
             }
           }
