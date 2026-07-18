@@ -57,6 +57,7 @@ class GuaritaIP
         }
     }
 
+
     private function normalizeDeviceNumber($deviceNumber): string|false {
         // Normaliza o número do dispositivo para o formato aceito pelo GuaritaIP.
         // CAN 1 a CAN 8; valores de 0 a 7
@@ -75,7 +76,8 @@ class GuaritaIP
         }
     }
 
-    protected function calculateChecksum($input) {
+
+    private function calculateChecksum($input) {
         // Calcula o checksum, concatena-o ao final de $input e retorna o valor.
         
         $dec = str_split($input, 2);
@@ -96,8 +98,7 @@ class GuaritaIP
     }
 
 
-
-    protected function removeExtraByte($input) {
+    private function removeExtraByte($input) {
         // Remove o byte extra 0x00 retornado por receptores Multifunção-4A com firmware 2.005y
         
         if (substr($input, 0, 2) == substr($input, 2, 2) && substr($input, 0, 2) == '00') {
@@ -108,19 +109,24 @@ class GuaritaIP
     }
 
 
+    private function connect() {
+        $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
+        return $fp;
+    }
+
 
     // PC 3: Ler identificação (Linha 2 e 3 - Display)
     public function getIdentification() {
-        $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
-        if (!$fp) {
+        $connection = $this->connect();
+        if (!$connection) {
             return false;
         } else {
-            fwrite($fp, $this->deviceAccessCode);
-            fgets($fp, 12);
+            fwrite($connection, $this->deviceAccessCode);
+            fgets($connection, 12);
             $message = hex2bin('000303');
-            fwrite($fp, $message);
-            $response = fgets($fp, 44);
-            fclose($fp);
+            fwrite($connection, $message);
+            $response = fgets($connection, 44);
+            fclose($connection);
             return $response;
           }
     }
@@ -129,16 +135,16 @@ class GuaritaIP
 
     // PC 12: Ler data e hora (Relógio)
     public function getDateTime() {
-        $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
-        if (!$fp) {
+        $connection = $this->connect();
+        if (!$connection) {
             return false;
         } else {
-            fwrite($fp, $this->deviceAccessCode);
-            fgets($fp, 12);
+            fwrite($connection, $this->deviceAccessCode);
+            fgets($connection, 12);
             $message = hex2bin('000c0c');
-            fwrite($fp, $message);
-            $response = fgets($fp, 10);
-            fclose($fp);
+            fwrite($connection, $message);
+            $response = fgets($connection, 10);
+            fclose($connection);
             return bin2hex($response);
           }
     }
@@ -168,16 +174,16 @@ class GuaritaIP
         
         $shouldGenerateEvent = $shouldGenerateEvent ? '01' : '00';
 
-        $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
-        if (!$fp) {
+        $connection = $this->connect();
+        if (!$connection) {
             return false;
         } else {
-            fwrite($fp, $this->deviceAccessCode);
-            fgets($fp, 12);
+            fwrite($connection, $this->deviceAccessCode);
+            fgets($connection, 12);
             $message = hex2bin($this->calculateChecksum('000d' . $deviceType . $deviceNumber . $deviceOutputNumber . $shouldGenerateEvent));
-            fwrite($fp, $message);
-            fgets($fp, 2);
-            fclose($fp);
+            fwrite($connection, $message);
+            fgets($connection, 2);
+            fclose($connection);
             return true;
           }
     }
@@ -186,16 +192,16 @@ class GuaritaIP
     
     // PC 18: Reiniciar Guarita (Efetiva Config. Ethernet)
     public function rebootGuaritaIP() {
-        $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
-        if (!$fp) {
+        $connection = $this->connect();
+        if (!$connection) {
             return false;
         } else {
-            fwrite($fp, $this->deviceAccessCode);
-            fgets($fp, 12);
+            fwrite($connection, $this->deviceAccessCode);
+            fgets($connection, 12);
             $message = hex2bin('001212');
-            fwrite($fp, $message);
-            fgets($fp, 2);
-            fclose($fp);
+            fwrite($connection, $message);
+            fgets($connection, 2);
+            fclose($connection);
             return true;
           }
     }
@@ -204,16 +210,16 @@ class GuaritaIP
     
     // PC 24: RESET remoto (Tecla RESET do Guarita)
     public function pressResetButton() {
-        $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
-        if (!$fp) {
+        $connection = $this->connect();
+        if (!$connection) {
             return false;
         } else {
-            fwrite($fp, $this->deviceAccessCode);
-            fgets($fp, 12);
+            fwrite($connection, $this->deviceAccessCode);
+            fgets($connection, 12);
             $message = hex2bin('001818');
-            fwrite($fp, $message);
-            fgets($fp, 2);
-            fclose($fp);
+            fwrite($connection, $message);
+            fgets($connection, 2);
+            fclose($connection);
             return true;
           }
     }
@@ -222,19 +228,19 @@ class GuaritaIP
     
     // PC 29: Atualizar Receptores
     public function updateReceptors() {
-        $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
-        if (!$fp) {
+        $connection = $this->connect();
+        if (!$connection) {
             return false;
         } else {
-            fwrite($fp, $this->deviceAccessCode);
-            fgets($fp, 12);
+            fwrite($connection, $this->deviceAccessCode);
+            fgets($connection, 12);
             $message = hex2bin('001d1d');
-            fwrite($fp, $message);
-            if (bin2hex(fgets($fp, 5)) == '001d001d') {
-                fclose($fp);
+            fwrite($connection, $message);
+            if (bin2hex(fgets($connection, 5)) == '001d001d') {
+                fclose($connection);
                 return true;
             } else {
-                fclose($fp);
+                fclose($connection);
                 return false;
             }
           }
@@ -285,16 +291,16 @@ class GuaritaIP
         }
 
 
-        $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
-        if (!$fp) {
+        $connection = $this->connect();
+        if (!$connection) {
             return false;
         } else {
-            fwrite($fp, $this->deviceAccessCode);
-            fgets($fp, 12);
+            fwrite($connection, $this->deviceAccessCode);
+            fgets($connection, 12);
             $message = hex2bin($this->calculateChecksum('0027' . $deviceType . $deviceNumber . $duration));
-            fwrite($fp, $message);
-            fgets($fp, 2);
-            fclose($fp);
+            fwrite($connection, $message);
+            fgets($connection, 2);
+            fclose($connection);
             return true;
           }
     }
@@ -302,7 +308,7 @@ class GuaritaIP
 
 
     // PC 61: Ler versão do Receptor (Firmware)
-    public function getReceptorVersion($deviceType, $deviceNumber, $fp = null) {
+    public function getReceptorVersion($deviceType, $deviceNumber) {
         $deviceType = $this->normalizeDeviceType($deviceType);
         $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
         
@@ -310,28 +316,26 @@ class GuaritaIP
             return false;
         }
 
-        if (!$fp) {
-            $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
-        }
+        $connection = $this->connect();
             
-        if (!$fp) {
+        if (!$connection) {
             return false;
         } else {
             if ($this->deviceAccessCode) {
-                fwrite($fp, $this->deviceAccessCode);
-                $auth = fgets($fp, 11);
+                fwrite($connection, $this->deviceAccessCode);
+                $auth = fgets($connection, 11);
                 if ($auth == 'Autorizado') {
                     $message = hex2bin($this->calculateChecksum('003d' . $deviceType . $deviceNumber));
-                    fwrite($fp, $message);
-                    $res = strval(fgets($fp, 11));
+                    fwrite($connection, $message);
+                    $res = strval(fgets($connection, 11));
                     echo hex2bin(substr(bin2hex($this->removeExtraByte($res)), 8, 17)), PHP_EOL;
                 } else { 
                     return false;
                   }
             } else {
                 $message = hex2bin($this->calculateChecksum('003d' . $deviceType . $deviceNumber));
-                fwrite($fp, $message);
-                $res = strval(fgets($fp, 11));
+                fwrite($connection, $message);
+                $res = strval(fgets($connection, 11));
                 echo hex2bin(substr(bin2hex($this->removeExtraByte($res)), 8, 17)), PHP_EOL;
             }
           }
@@ -348,26 +352,26 @@ class GuaritaIP
             return false;
         }
         
-        $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
-        if (!$fp) {
+        $connection = $this->connect();
+        if (!$connection) {
             return false;
         } else {
             if ($this->deviceAccessCode) {
-                fwrite($fp, $this->deviceAccessCode);
-                $auth = fgets($fp, 11);
+                fwrite($connection, $this->deviceAccessCode);
+                $auth = fgets($connection, 11);
                 if ($auth == 'Autorizado') {
                     $message = hex2bin($this->calculateChecksum('0042' . $deviceType . $deviceNumber));
-                    fwrite($fp, $message);
-                    $digitalInput = str_split(bin2hex(fgets($fp, 7)), 2);
+                    fwrite($connection, $message);
+                    $digitalInput = str_split(bin2hex(fgets($connection, 7)), 2);
                     echo $digitalInput[0], $digitalInput[1], $digitalInput[2], $digitalInput[3], $digitalInput[4], $digitalInput[5];
                 } else { 
                     return false;
                   }
             } else {
                 $message = hex2bin($this->calculateChecksum('0042' . $deviceType . $deviceNumber));
-                fwrite($fp, $message);
-                //$digitalInput = str_split(bin2hex(fgets($fp, 7)), 2);
-                $digitalInput = strval(fgets($fp, 7));
+                fwrite($connection, $message);
+                //$digitalInput = str_split(bin2hex(fgets($connection, 7)), 2);
+                $digitalInput = strval(fgets($connection, 7));
                 echo $digitalInput[0], $digitalInput[1], $digitalInput[2], $digitalInput[3], $digitalInput[4], $digitalInput[5];
             }
           }
@@ -410,16 +414,16 @@ class GuaritaIP
         $shouldGenerateEvent = $shouldGenerateEvent ? '01' : '00';
         
 
-        $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
-        if (!$fp) {
+        $connection = $this->connect();
+        if (!$connection) {
             return false;
         } else {
-            fwrite($fp, $this->deviceAccessCode);
-            fgets($fp, 12);
+            fwrite($connection, $this->deviceAccessCode);
+            fgets($connection, 12);
             $message = hex2bin($this->calculateChecksum('005c' . $deviceType . $deviceNumber . $deviceOutputNumber . $shouldGenerateEvent . $duration));
-            fwrite($fp, $message);
-            fgets($fp, 2);
-            fclose($fp);
+            fwrite($connection, $message);
+            fgets($connection, 2);
+            fclose($connection);
             return true;
           }
     }
@@ -513,17 +517,17 @@ class GuaritaIP
                 $digitalInput = 0;
         }
         
-        $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
-        if (!$fp) {
+        $connection = $this->connect();
+        if (!$connection) {
             return false;
         } else {
             if ($this->deviceAccessCode) {
-                fwrite($fp, $this->deviceAccessCode);
-                $auth = fgets($fp, 11);
+                fwrite($connection, $this->deviceAccessCode);
+                $auth = fgets($connection, 11);
                 if ($auth == 'Autorizado') {
                     $message = hex2bin($this->calculateChecksum('005d' . $deviceType . $deviceNumber));
-                    fwrite($fp, $message);
-                    $digitalInput = strval(fgets($fp, 8));
+                    fwrite($connection, $message);
+                    $digitalInput = strval(fgets($connection, 8));
                     $digitalInput = substr($this->removeExtraByte(bin2hex($digitalInput)), 8, 4);
                     $digitalInput = strval(base_convert($digitalInput, 16, 2));
                     $digitalInput = str_pad($digitalInput, 16, '0', STR_PAD_LEFT);
@@ -538,8 +542,8 @@ class GuaritaIP
                   }
             } else {
                 $message = hex2bin($this->calculateChecksum('005d' . $deviceType . $deviceNumber));
-                fwrite($fp, $message);
-                $digitalInput = strval(fgets($fp, 8));
+                fwrite($connection, $message);
+                $digitalInput = strval(fgets($connection, 8));
                 $digitalInput = substr($this->removeExtraByte(bin2hex($digitalInput)), 8, 4);
                 $digitalInput = strval(base_convert($digitalInput, 16, 2));
                 $digitalInput = str_pad($digitalInput, 16, '0', STR_PAD_LEFT);
