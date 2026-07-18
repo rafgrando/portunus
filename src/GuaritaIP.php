@@ -110,7 +110,7 @@ class GuaritaIP
 
 
     // PC 3: Ler identificação (Linha 2 e 3 - Display)
-    public function readIdentification() {
+    public function getIdentification() {
         $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
         if (!$fp) {
             return false;
@@ -128,7 +128,7 @@ class GuaritaIP
 
 
     // PC 12: Ler data e hora (Relógio)
-    public function readDateTime() {
+    public function getDateTime() {
         $fp = fsockopen($this->deviceIpAddress, $this->deviceTcpPort, $errno, $errstr, $this->timeout);
         if (!$fp) {
             return false;
@@ -294,7 +294,7 @@ class GuaritaIP
 
 
     // PC 61: Ler versão do Receptor (Firmware)
-    public function readReceptorVersion($deviceType, $deviceNumber, $fp = null) {
+    public function getReceptorVersion($deviceType, $deviceNumber, $fp = null) {
         $deviceType = $this->normalizeDeviceType($deviceType);
         $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
         
@@ -328,7 +328,7 @@ class GuaritaIP
     
     
     // PC 66: Ler entradas digitais - RECEPTOR
-    public function readDigitalInput($deviceType, $deviceNumber, $digitalInput = 0) {
+    public function getDigitalInput($deviceType, $deviceNumber, $digitalInput = 0) {
         $deviceType = $this->normalizeDeviceType($deviceType);
         $deviceNumber = $this->normalizeDeviceNumber($deviceNumber);
         
@@ -407,7 +407,7 @@ class GuaritaIP
     
     
     // PC 93: Ler entradas digitais (Avançado) - RECEPTOR
-    public function readDigitalInputAdvanced($deviceType, $deviceNumber, $reader = 0, $digitalInput = 0) {
+    public function getDigitalInputAdvanced($deviceType, $deviceNumber, $reader = 0, $digitalInput = 0) {
         //   Se especificados "$reader" e "$digitalInput", retorna 0 (desligado) ou 1 (ligado).
         //   Caso não sejam especificados "$reader" e "$digitalInput", retorna uma string representando um
         // número binário de 16 posições, sendo 4 posições para cada leitor (reader), da esquerda para direta, do maior
