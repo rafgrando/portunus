@@ -261,7 +261,7 @@ class GuaritaIP
             case 'all':
             case 'FF':
             case 'ff':
-                $deviceType = 'ff';
+                $deviceNumber = 'ff';
                 break;
             case '00':
             case '01':
