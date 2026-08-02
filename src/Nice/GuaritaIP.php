@@ -1,6 +1,6 @@
 <?php 
 
-namespace Rafgrando\Portunus;
+namespace Rafgrando\Portunus\Nice;
 
 class GuaritaIP
 {   
