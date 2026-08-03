@@ -3,7 +3,7 @@
 [![Latest Stable Version](https://poser.pugx.org/rafgrando/portunus/v/stable)](https://packagist.org/packages/rafgrando/portunus)
 [![License](https://poser.pugx.org/rafgrando/portunus/license)](https://packagist.org/packages/rafgrando/portunus)
 
-**Portunus** is a modern PHP library designed for seamless integration with physical access control hardware. It currently supports TCP/IP communication with the **Nice / Linear-HCS MG3000 Gatekeeper Module (Módulo Guarita)**, a widely adopted industry standard for condominium and corporate security in Latin America.
+**Portunus** is a modern PHP library designed for seamless integration with physical access control hardware. It currently supports TCP/IP communication with the **Nice / Linear-HCS MG3000 Gatekeeper Module (Módulo Guarita)**, a widely adopted industry standard for condominium and corporate security in Latin America, as well as with Comm5's MA I/O modules.
 
 ---
 
@@ -17,7 +17,7 @@
 
 ## Features
 
-* **TCP/IP Native Socket Connection:** Lightweight, fast, and robust socket-level communication with the MG3000.
+* **TCP/IP Native Socket Connection:** Lightweight, fast, and robust socket-level communication with the MG3000 and Comm5 MA.
 * **Command & Frame Parsing:** Built-in abstraction for raw byte frames, saving you from dealing with low-level buffer manipulation manually.
 * **PSR-4 Compliant:** Clean, modern, and fully compatible with Composer-based workflows.
 
